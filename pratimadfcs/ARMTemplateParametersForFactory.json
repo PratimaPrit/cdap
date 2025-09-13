@@ -1,0 +1,15 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "pratimadfcs"
+		},
+		"ppADLS_accountKey": {
+			"value": ""
+		},
+		"ppADLS_properties_typeProperties_url": {
+			"value": "https://pratimastcadpdev.dfs.core.windows.net/"
+		}
+	}
+}

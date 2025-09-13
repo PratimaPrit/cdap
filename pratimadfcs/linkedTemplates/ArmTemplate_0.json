@@ -1,0 +1,688 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "pratimadfcs"
+		},
+		"ppADLS_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ppADLS'"
+		},
+		"ppADLS_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://pratimastcadpdev.dfs.core.windows.net/"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ppADLS')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This is the ADLS linked service",
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ppADLS_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('ppADLS_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/customer_bronze')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ppADLS",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "customers (1).csv",
+						"folderPath": "customers/ingest_date=2025-09-13",
+						"fileSystem": "bronze"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "CustomerID",
+						"type": "String"
+					},
+					{
+						"name": "FirstName",
+						"type": "String"
+					},
+					{
+						"name": "LastName",
+						"type": "String"
+					},
+					{
+						"name": "Email",
+						"type": "String"
+					},
+					{
+						"name": "Phone",
+						"type": "String"
+					},
+					{
+						"name": "SignupDate",
+						"type": "String"
+					},
+					{
+						"name": "LoyaltyTier",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ppADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/customers_silver')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ppADLS",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "customers",
+						"fileSystem": "silver"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ppADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/rejectCustomer')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ppADLS",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "_rejects/customers",
+						"fileSystem": "silver"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ppADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/rejectTransacitions')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ppADLS",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "_rejects/transactions",
+						"fileSystem": "silver"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ppADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/rejectsweblogs')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ppADLS",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "_rejects/weblogs",
+						"fileSystem": "silver"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ppADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/transaction_bronze')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ppADLS",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "transactions.csv",
+						"folderPath": "transactions/ingest_date=2025-09-13",
+						"fileSystem": "bronze"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "TransactionID",
+						"type": "String"
+					},
+					{
+						"name": "CustomerID",
+						"type": "String"
+					},
+					{
+						"name": "TransactionDate",
+						"type": "String"
+					},
+					{
+						"name": "ProductID",
+						"type": "String"
+					},
+					{
+						"name": "Quantity",
+						"type": "String"
+					},
+					{
+						"name": "Amount",
+						"type": "String"
+					},
+					{
+						"name": "StoreID",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ppADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/transactions_silver')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ppADLS",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "transactions",
+						"fileSystem": "silver"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ppADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/weblogs_bronze')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ppADLS",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "weblogs.json",
+						"folderPath": "weblogs/ingest_date=2025-09-13",
+						"fileSystem": "bronze"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"SessionID": {
+							"type": "string"
+						},
+						"CustomerID": {
+							"type": "integer"
+						},
+						"Timestamp": {
+							"type": "string"
+						},
+						"PageVisited": {
+							"type": "string"
+						},
+						"DurationSeconds": {
+							"type": "integer"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ppADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/weblogs_silver')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ppADLS",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "weblogs",
+						"fileSystem": "silver"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ppADLS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/data_flow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "customer_bronze",
+								"type": "DatasetReference"
+							},
+							"name": "bronzeToSilverCustomers"
+						},
+						{
+							"dataset": {
+								"referenceName": "transaction_bronze",
+								"type": "DatasetReference"
+							},
+							"name": "bronzeToSilverTransactions"
+						},
+						{
+							"dataset": {
+								"referenceName": "weblogs_bronze",
+								"type": "DatasetReference"
+							},
+							"name": "bronzeToSilverWeblogs"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "customers_silver",
+								"type": "DatasetReference"
+							},
+							"name": "customerSilver"
+						},
+						{
+							"dataset": {
+								"referenceName": "rejectCustomer",
+								"type": "DatasetReference"
+							},
+							"name": "rejectsCustomer"
+						},
+						{
+							"dataset": {
+								"referenceName": "transactions_silver",
+								"type": "DatasetReference"
+							},
+							"name": "transactionSilver"
+						},
+						{
+							"dataset": {
+								"referenceName": "rejectTransacitions",
+								"type": "DatasetReference"
+							},
+							"name": "rejectsTransactions"
+						},
+						{
+							"dataset": {
+								"referenceName": "weblogs_silver",
+								"type": "DatasetReference"
+							},
+							"name": "weblogsSilver"
+						},
+						{
+							"dataset": {
+								"referenceName": "rejectsweblogs",
+								"type": "DatasetReference"
+							},
+							"name": "rejectsWeblogs"
+						}
+					],
+					"transformations": [
+						{
+							"name": "derivedCustomer"
+						},
+						{
+							"name": "customerCondition"
+						},
+						{
+							"name": "derivedTransaction"
+						},
+						{
+							"name": "transactionCondition"
+						},
+						{
+							"name": "derivedWeblog"
+						},
+						{
+							"name": "weblogCondition"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerID as string,",
+						"          FirstName as string,",
+						"          LastName as string,",
+						"          Email as string,",
+						"          Phone as string,",
+						"          SignupDate as string,",
+						"          LoyaltyTier as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> bronzeToSilverCustomers",
+						"source(output(",
+						"          TransactionID as string,",
+						"          CustomerID as string,",
+						"          Amount as string,",
+						"          TxnTime as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> bronzeToSilverTransactions",
+						"source(output(",
+						"          SessionID as string,",
+						"          CustomerID as string,",
+						"          Timestamp as string,",
+						"          PageVisited as string,",
+						"          DurationSeconds as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     documentForm: 'documentPerLine') ~> bronzeToSilverWeblogs",
+						"bronzeToSilverCustomers derive(CustomerID = toInteger(CustomerID),",
+						"          Phone = toInteger(Phone),",
+						"          SignupDate = toTimestamp(SignupDate, 'yyyy-MM-dd')) ~> derivedCustomer",
+						"derivedCustomer split(!isNull(CustomerID) && !isNull(SignupDate),",
+						"     disjoint: false) ~> customerCondition@(valid, reject)",
+						"bronzeToSilverTransactions derive(TransactionID = toInteger(TransactionID),",
+						"          CustomerID = toInteger(CustomerID),",
+						"          Amount = toDouble(Amount),",
+						"          TxnTime = toTimestamp(TxnTime, 'yyyy-MM-dd HH:mm:ss')) ~> derivedTransaction",
+						"derivedTransaction split(!isNull(CustomerID) && Amount >= 0,",
+						"     disjoint: false) ~> transactionCondition@(valid, reject)",
+						"bronzeToSilverWeblogs derive(CustomerID = toInteger(CustomerID),",
+						"          DurationSeconds = toInteger(DurationSeconds),",
+						"          Timestamp = toTimestamp(Timestamp, 'yyyy-MM-dd HH:mm:ss')) ~> derivedWeblog",
+						"derivedWeblog split(!isNull(CustomerID) && !isNull(Timestamp),",
+						"     disjoint: false) ~> weblogCondition@(valid, reject)",
+						"customerCondition@valid sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: []) ~> customerSilver",
+						"customerCondition@reject sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: []) ~> rejectsCustomer",
+						"transactionCondition@valid sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: []) ~> transactionSilver",
+						"transactionCondition@reject sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: []) ~> rejectsTransactions",
+						"weblogCondition@valid sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: []) ~> weblogsSilver",
+						"weblogCondition@reject sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: []) ~> rejectsWeblogs"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/customer_bronze')]",
+				"[concat(variables('factoryId'), '/datasets/transaction_bronze')]",
+				"[concat(variables('factoryId'), '/datasets/weblogs_bronze')]",
+				"[concat(variables('factoryId'), '/datasets/customers_silver')]",
+				"[concat(variables('factoryId'), '/datasets/rejectCustomer')]",
+				"[concat(variables('factoryId'), '/datasets/transactions_silver')]",
+				"[concat(variables('factoryId'), '/datasets/rejectTransacitions')]",
+				"[concat(variables('factoryId'), '/datasets/weblogs_silver')]",
+				"[concat(variables('factoryId'), '/datasets/rejectsweblogs')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_bronze_to_silver')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "RunCustomerDataFlow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "data_flow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"bronzeToSilverCustomers": {},
+									"bronzeToSilverTransactions": {},
+									"bronzeToSilverWeblogs": {},
+									"customerSilver": {},
+									"rejectsCustomer": {},
+									"transactionSilver": {},
+									"rejectsTransactions": {},
+									"weblogsSilver": {},
+									"rejectsWeblogs": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "RunTransactionDataFlow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "RunCustomerDataFlow",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "data_flow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"bronzeToSilverCustomers": {},
+									"bronzeToSilverTransactions": {},
+									"bronzeToSilverWeblogs": {},
+									"customerSilver": {},
+									"rejectsCustomer": {},
+									"transactionSilver": {},
+									"rejectsTransactions": {},
+									"weblogsSilver": {},
+									"rejectsWeblogs": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "RunWeblogsDataFlow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "RunTransactionDataFlow",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "data_flow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"bronzeToSilverCustomers": {},
+									"bronzeToSilverTransactions": {},
+									"bronzeToSilverWeblogs": {},
+									"customerSilver": {},
+									"rejectsCustomer": {},
+									"transactionSilver": {},
+									"rejectsTransactions": {},
+									"weblogsSilver": {},
+									"rejectsWeblogs": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-09-13T18:07:02Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/data_flow')]"
+			]
+		}
+	]
+}
