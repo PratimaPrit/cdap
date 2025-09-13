@@ -1,0 +1,9 @@
+{
+	"name": "pratimadfcs",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "2c8505d6-6ba5-46b9-8629-1c0c549409aa",
+		"tenantId": "8d62d80d-684a-428c-9050-493e35611ae4"
+	}
+}

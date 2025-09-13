@@ -1,0 +1,40 @@
+{
+	"name": "weblogs_bronze",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ppADLS",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "weblogs.json",
+				"folderPath": "weblogs/ingest_date=2025-09-13",
+				"fileSystem": "bronze"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"SessionID": {
+					"type": "string"
+				},
+				"CustomerID": {
+					"type": "integer"
+				},
+				"Timestamp": {
+					"type": "string"
+				},
+				"PageVisited": {
+					"type": "string"
+				},
+				"DurationSeconds": {
+					"type": "integer"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

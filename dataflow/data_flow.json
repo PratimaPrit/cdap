@@ -1,0 +1,76 @@
+{
+	"name": "data_flow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "customer_bronze",
+						"type": "DatasetReference"
+					},
+					"name": "bronzeToSilver"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "customers_silver",
+						"type": "DatasetReference"
+					},
+					"name": "customerSilver"
+				},
+				{
+					"dataset": {
+						"referenceName": "rejectCustomer",
+						"type": "DatasetReference"
+					},
+					"name": "rejectsCustomer"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "customerCondition"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as string,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          Email as string,",
+				"          Phone as string,",
+				"          SignupDate as string,",
+				"          LoyaltyTier as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> bronzeToSilver",
+				"bronzeToSilver derive(CustomerID = toInteger(CustomerID),",
+				"          Phone = toInteger(Phone),",
+				"          SignupDate = toTimestamp(SignupDate, 'yyyy-MM-dd')) ~> derivedColumn1",
+				"derivedColumn1 split(!isNull(CustomerID) && !isNull(SignupDate),",
+				"     disjoint: false) ~> customerCondition@(valid, reject)",
+				"customerCondition@valid sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> customerSilver",
+				"customerCondition@reject sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> rejectsCustomer"
+			]
+		}
+	}
+}

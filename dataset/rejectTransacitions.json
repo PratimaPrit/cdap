@@ -1,0 +1,21 @@
+{
+	"name": "rejectTransacitions",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ppADLS",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "_rejects/transactions",
+				"fileSystem": "silver"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
