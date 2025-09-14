@@ -127,7 +127,6 @@
 				"     ignoreNoFilesFound: false,",
 				"     documentForm: 'documentPerLine') ~> bronzeToSilverWeblogs",
 				"bronzeToSilverCustomers derive(CustomerID = toInteger(CustomerID),",
-				"          Phone = toInteger(Phone),",
 				"          SignupDate = toTimestamp(SignupDate, 'yyyy-MM-dd')) ~> derivedCustomer",
 				"derivedCustomer split(!isNull(CustomerID) && !isNull(SignupDate),",
 				"     disjoint: false) ~> customerCondition@(valid, reject)",
