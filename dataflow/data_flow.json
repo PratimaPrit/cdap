@@ -96,7 +96,7 @@
 				"          FirstName as string,",
 				"          LastName as string,",
 				"          Email as string,",
-				"          Phone as string,",
+				"          Phone as integer,",
 				"          SignupDate as string,",
 				"          LoyaltyTier as string",
 				"     ),",
